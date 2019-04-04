@@ -48,10 +48,10 @@ def get_classification_data() -> str:
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
-    if path != "" and os.path.exists("react_app/build/" + path):
-        return send_from_directory('react_app/build', path)
+    if path != "" and os.path.exists("build/" + path):
+        return send_from_directory('build', path)
     else:
-        return send_from_directory('react_app/build', 'index.html')
+        return send_from_directory('build', 'index.html')
 
 
 if __name__ == '__main__':
