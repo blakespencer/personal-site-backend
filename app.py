@@ -9,6 +9,9 @@ import pandas as pd
 import urllib
 
 
+path = os.path.dirname(os.path.abspath(__file__))
+
+
 app = Flask(__name__, static_folder='react_app/build')
 
 features = (['end_of_fade_in',
@@ -29,16 +32,16 @@ features = (['end_of_fade_in',
 
 # Serve React App
 
-with open('prediction_object.pkl', 'rb') as picklefile:
+with open(os.path.join(path, 'prediction_object.pkl'), 'rb') as picklefile:
     prediction_object = pickle.load(picklefile)
 
-with open('histogram_data.pkl', 'rb') as picklefile:
+with open(os.path.join(path, 'histogram_data.pkl'), 'rb') as picklefile:
     histogram_data = pickle.load(picklefile)
 
-with open('precision_obj.pkl', 'rb') as picklefile:
+with open(os.path.join(path, 'precision_obj.pkl'), 'rb') as picklefile:
     precision_data = pickle.load(picklefile)
 
-with open('feature_importance.pkl', 'rb') as picklefile:
+with open(os.path.join(path, 'feature_importance.pkl'), 'rb') as picklefile:
     feature_data = pickle.load(picklefile)
 
 
@@ -97,7 +100,7 @@ def search_spotify() -> str:
         return jsonify([]), 404
 
 
-with open('random_forest_100.pkl', 'rb') as picklefile:
+with open(os.path.join(path, 'random_forest_100.pkl'), 'rb') as picklefile:
     random_forest_model = pickle.load(picklefile)
 
 
@@ -127,6 +130,7 @@ def serve(path):
     if path != "" and os.path.exists("build/" + path):
         return send_from_directory('build', path)
     else:
+        print('it is here')
         return send_from_directory('build', 'index.html')
 
 
