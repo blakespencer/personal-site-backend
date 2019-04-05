@@ -82,7 +82,7 @@ def get_spotify_row(uri):
 
 
 @app.route('/api/search')  # the site to route to, index/main in this case
-def search() -> str:
+def search_spotify() -> str:
     try:
         prediction = jsonify(message='20000'), 200
         uri = request.args.get('query')
@@ -95,6 +95,30 @@ def search() -> str:
     except Exception as e:
         print(e)
         return jsonify([]), 404
+
+
+with open('random_forest_100.pkl', 'rb') as picklefile:
+    random_forest_model = pickle.load(picklefile)
+
+
+@app.route('/api/data')  # the site to route to, index/main in this case
+def get_predictions() -> str:
+    prediction = jsonify(message='20000'), 200
+    uri = request.args.get('uri')
+    if(uri is not None):
+        uri_edit = uri.split(':')[2]
+        row = get_spotify_row(uri_edit)
+        row = row[features]
+        classes = random_forest_model.classes_
+        probs = list(random_forest_model.predict_proba([row.iloc[0]])[0])
+        probs_list = []
+        track_info = list(row.iloc[0])
+        for i in range(len(classes)):
+            probs_list.append({'genre': classes[i], 'value': probs[i]})
+        prediction = jsonify({'message': random_forest_model.predict([row.iloc[0]])[
+            0], 'probs': probs_list, 'track_info': track_info}), 200
+
+    return prediction
 
 
 @app.route('/', defaults={'path': ''})
