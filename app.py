@@ -8,6 +8,14 @@ import spotipy.util as util
 import pandas as pd
 import urllib
 
+try:
+    spotify_information = {
+        'client_secret': os.environ['CLIENT_SECRET'],
+        'client_id': os.environ['CLIENT_ID']
+    }
+    print('success')
+except:
+    print('dev')
 
 path = os.path.dirname(os.path.abspath(__file__))
 
