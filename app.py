@@ -70,26 +70,29 @@ sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
 def get_spotify_row(uri):
     track = sp.track(uri)
-    features = sp.audio_features(tracks=[uri])
+    features = sp.audio_features(tracks=[uri])[0]
     analysis = sp.audio_analysis(uri)
-    track['album']['artists'][0]['track'] = track['name']
-    track = pd.DataFrame(track['album']['artists'][0])[
-        ['name', 'track']].reset_index()
-
-    features = pd.DataFrame(features)
-
     analysis = analysis['track']
-    analysis['codestring'] = None
-    analysis['echoprintstring'] = None
-    analysis['synchstring'] = None
-    analysis['rhythmstring'] = None
 
-    analysis = pd.DataFrame(analysis, index=[0])
-
-    feat_ana = pd.merge(analysis, features)
-    feat_ana = feat_ana._get_numeric_data()
-
-    return pd.merge(feat_ana, track, how='left',  left_index=True, right_index=True).drop('index', axis=1)
+    features_data = [{
+        'track': track['name'],
+        'name': track['album']['artists'][0]['name'],
+        'acousticness': features['acousticness'],
+        'danceability': features['danceability'],
+        'energy': features['energy'],
+        'speechiness': features['speechiness'],
+        'valence': features['valence'],
+        'instrumentalness': features['instrumentalness'],
+        'liveness': features['liveness'],
+        'end_of_fade_in': analysis['end_of_fade_in'],
+        'start_of_fade_out': analysis['start_of_fade_out'],
+        'loudness':analysis['loudness'],
+        'tempo': analysis['tempo'],
+        'tempo_confidence': analysis['tempo_confidence'],
+        'time_signature_confidence': analysis['time_signature_confidence'],
+        'time_signature': analysis['time_signature']
+    }]
+    return pd.DataFrame(features_data)
 
 
 @app.route('/api/search')  # the site to route to, index/main in this case
@@ -112,12 +115,12 @@ with open(os.path.join(path, 'random_forest_100.pkl'), 'rb') as picklefile:
     random_forest_model = pickle.load(picklefile)
 
 
-@app.route('/api/data')  # the site to route to, index/main in this case
+@app.route('/api/data')
 def get_predictions() -> str:
     prediction = jsonify(message='20000'), 200
     uri = request.args.get('uri')
     if(uri is not None):
-        uri_edit = uri.split(':')[2]
+        uri_edit = uri.replace('spotify:track:', '')
         row = get_spotify_row(uri_edit)
         row = row[features]
         classes = random_forest_model.classes_
